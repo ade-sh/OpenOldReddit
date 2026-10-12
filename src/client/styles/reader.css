@@ -3311,10 +3311,9 @@ button.appbar-title {
 
 @media (min-width: 1000px) {
 
-  /* Keep the feed centered and prevent it from hugging the left edge. */
+  /* Keep the feed's readable max width without centering the whole feed. */
   .screen.is-feed .feed {
     width: min(100%, 1180px);
-    margin-inline: auto;
   }
 
   /* Give individual posts a more traditional, compact appearance. */
