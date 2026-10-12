@@ -3785,3 +3785,10 @@ button.appbar-title {
   border-radius: 8px;
   background: #000;
 }
+
+
+:root[data-comment-nav='hide'] .comment-nav { display: none !important; }
+.post-meta a.author, .comment-head a.author, .appbar-title a.name { text-decoration: none; }
+.post-meta a.author:hover, .comment-head a.author:hover, .appbar-title a.name:hover { text-decoration: underline; }
+.comment-flat-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.comment-flat-actions .flat-action { border: 0; padding: 2px 0; background: transparent; color: var(--link); font: inherit; font-size: 12px; cursor: pointer; }
