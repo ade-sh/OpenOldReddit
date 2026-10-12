@@ -296,8 +296,8 @@ export const DEFAULT_PREFS: Prefs = {
   reduceMotion: false,
   autoplayGifs: true,
   showThumbnails: true,
-  paneModePortrait: "auto",
-  paneModeLandscape: "auto",
+  paneModePortrait: "single",
+  paneModeLandscape: "single",
 };
 
 export type InitResponse = {
