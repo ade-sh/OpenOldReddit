@@ -81,6 +81,12 @@ export type Distinguished = "moderator" | "admin";
 export type ViewerVote = -1 | 0 | 1;
 
 /** Moderation details, present only in moderator listings. */
+export type AwardInfo = {
+  name: string;
+  iconUrl?: string;
+  count: number;
+};
+
 export type ModInfo = {
   /** "n: reason" for user reports, "u/mod: reason" for moderator reports. */
   reports: string[];
@@ -112,6 +118,8 @@ export type PostSummary = {
   excerpt?: string;
   thumb?: ImageRef;
   media: PostMedia;
+  /** Awards reported by Reddit's legacy listing API. */
+  awards?: AwardInfo[];
   /** Present when Reddit reports the signed-in viewer's vote. */
   vote?: ViewerVote;
   /** Whether the signed-in viewer saved it, when Reddit reports it. */
@@ -137,6 +145,8 @@ export type CommentNode = {
   isSubmitter: boolean;
   distinguished?: Distinguished;
   authorFlair?: Flair;
+  /** Awards reported by Reddit's legacy listing API. */
+  awards?: AwardInfo[];
   permalink: string;
   replies: CommentNode[];
   /** True when Reddit reports more replies that were not included. */
@@ -257,6 +267,10 @@ export type Prefs = {
   commentColors: "muted" | "vivid" | "mono";
   /** Maximum reading width for comment text on desktop. */
   commentWidth: "wide" | "comfortable" | "narrow";
+  /** Open media in the page or in the immersive viewer. */
+  mediaOpenMode: "inline" | "viewer";
+  /** Show award icons and counts on posts and comments. */
+  showAwards: boolean;
   commentSort: CommentSort;
   blurNsfw: boolean;
   blurSpoilers: boolean;
@@ -274,6 +288,8 @@ export const DEFAULT_PREFS: Prefs = {
   textScale: 1,
   commentColors: "muted",
   commentWidth: "comfortable",
+  mediaOpenMode: "inline",
+  showAwards: true,
   commentSort: "confidence",
   blurNsfw: true,
   blurSpoilers: true,
