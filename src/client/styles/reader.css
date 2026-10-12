@@ -3750,3 +3750,23 @@ button.appbar-title {
   background: #000;
   border-radius: 8px;
 }
+
+
+/* Keep the sort strip full-bleed even when the feed content is constrained. */
+.top-sub-bar {
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  box-sizing: border-box;
+}
+
+/* Detail media stays anchored to the reading column, never the far edge. */
+.screen.is-detail .post-head-media {
+  display: block;
+  margin-inline: auto;
+}
+.screen.is-detail .post-head-media .thumb,
+.screen.is-detail .post-head-media .media {
+  margin-inline: 0;
+  justify-self: start;
+}
