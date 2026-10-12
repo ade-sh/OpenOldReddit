@@ -699,7 +699,7 @@ export const PostScreen = ({ postId, seed, focus }: PostScreenProps) => {
         ) : (
           <>
             <div className="appbar-title">
-              <span className="name">r/{post?.subreddit ?? "…"}</span>
+              <a className="name" href={`/r/${encodeURIComponent(post?.subreddit ?? "")}/`}>r/{post?.subreddit ?? "…"}</a>
               <span className="sub">
                 {plural(commentCount, "comment")} · {sortLabel[sort]}
               </span>
