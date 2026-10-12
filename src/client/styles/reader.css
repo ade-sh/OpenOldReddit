@@ -3340,6 +3340,15 @@ button.appbar-title {
     line-height: 1.55;
   }
 
+  /* Let readers choose a classic Reddit-style comment text column. */
+  :root[data-comment-width='comfortable'] .screen.is-detail .comment-body .md {
+    max-width: 78ch;
+  }
+
+  :root[data-comment-width='narrow'] .screen.is-detail .comment-body .md {
+    max-width: 65ch;
+  }
+
   /* Classic link treatment, without changing buttons or controls. */
   .screen.is-detail .post-title,
   .screen.is-detail .comment-body a,
