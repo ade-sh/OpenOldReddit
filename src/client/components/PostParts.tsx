@@ -735,29 +735,3 @@ export const LinkCard = ({
   );
 };
 
-
-/* Expanded inline media stays in the post flow instead of covering the reader. */
-.gallery-inline-expanded {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: 8px;
-  padding: 8px 0;
-}
-.gallery-inline-expanded img {
-  display: block;
-  width: 100%;
-  max-height: 70vh;
-  object-fit: contain;
-  border-radius: 8px;
-}
-.media-inline-expanded {
-  width: 100%;
-  padding: 6px 0;
-}
-.media-inline-expanded video {
-  display: block;
-  width: 100%;
-  max-height: 75vh;
-  background: #000;
-  border-radius: 8px;
-}
