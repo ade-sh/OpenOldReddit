@@ -35,6 +35,7 @@ export const applyPrefsToDocument = (prefs: Prefs): void => {
   root.dataset.commentWidth = prefs.commentWidth;
   root.dataset.mediaOpen = prefs.mediaOpenMode;
   root.dataset.awards = prefs.showAwards ? 'show' : 'hide';
+  root.dataset.commentNav = prefs.showCommentNav ? 'show' : 'hide';
   root.dataset.motion = prefs.reduceMotion ? 'reduced' : 'full';
   root.style.setProperty('--ts', String(prefs.textScale));
 };
