@@ -2,7 +2,6 @@ import { safeUrl } from "../../extension/reddit";
 
 export const toast = (text: string): void => {
   window.dispatchEvent(new CustomEvent("openoldreddit:toast", { detail: text }));
-  window.dispatchEvent(new CustomEvent("openrelay:toast", { detail: text }));
 };
 export const redditUrl = (permalink: string): string => safeUrl(permalink);
 export const openUrl = (value: string): void => {
@@ -13,7 +12,6 @@ export const openUrl = (value: string): void => {
     ["www.reddit.com", "old.reddit.com", "reddit.com"].includes(target.hostname)
   ) {
     target.searchParams.set("openoldreddit", "off");
-    target.searchParams.set("openrelay", "off");
   }
   window.open(target.href, "_blank", "noopener,noreferrer");
 };
