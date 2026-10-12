@@ -625,8 +625,17 @@
 }
 
 .feed[data-layout='list'] .post-title {
-  font-size: calc(15px * var(--ts));
+  font-size: calc(16px * var(--ts));
 }
+
+.feed[data-layout='list'] .row {
+  gap: 14px;
+}
+
+.feed[data-layout='list'] .row-main {
+  min-width: 0;
+}
+
 
 .row-foot {
   padding: 0 8px 4px 6px;
@@ -677,8 +686,8 @@
 }
 
 .feed[data-layout='list'] .thumb {
-  width: 56px;
-  height: 56px;
+  width: 68px;
+  height: 68px;
   border-radius: 8px;
 }
 
@@ -1328,6 +1337,7 @@
 
 .comment-body {
   margin-top: 3px;
+  padding-inline: 6px;
   overflow-wrap: anywhere;
 }
 
@@ -3688,4 +3698,29 @@ button.appbar-title {
 .thumb {
   border-radius: 3px;
   border: 1px solid var(--divider);
+}
+
+
+/* Awards are deliberately compact so they don't overwhelm classic metadata. */
+.award-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  vertical-align: middle;
+  padding: 1px 5px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.award-chip img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+:root[data-awards='hide'] .award-chip {
+  display: none !important;
 }
