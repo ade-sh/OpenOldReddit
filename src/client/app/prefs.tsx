@@ -32,6 +32,7 @@ export const applyPrefsToDocument = (prefs: Prefs): void => {
   const root = document.documentElement;
   root.dataset.theme = resolveTheme(prefs.theme);
   root.dataset.comments = prefs.commentColors;
+  root.dataset.commentWidth = prefs.commentWidth;
   root.dataset.motion = prefs.reduceMotion ? 'reduced' : 'full';
   root.style.setProperty('--ts', String(prefs.textScale));
 };

@@ -255,6 +255,8 @@ export type Prefs = {
   layout: "cards" | "compact" | "list";
   textScale: number;
   commentColors: "muted" | "vivid" | "mono";
+  /** Maximum reading width for comment text on desktop. */
+  commentWidth: "wide" | "comfortable" | "narrow";
   commentSort: CommentSort;
   blurNsfw: boolean;
   blurSpoilers: boolean;
@@ -271,6 +273,7 @@ export const DEFAULT_PREFS: Prefs = {
   layout: "cards",
   textScale: 1,
   commentColors: "muted",
+  commentWidth: "comfortable",
   commentSort: "confidence",
   blurNsfw: true,
   blurSpoilers: true,
