@@ -148,7 +148,7 @@ export const CommentRow = memo(
           >
             [{collapsed ? "+" : "–"}]
           </button>
-          <span className={authorClass}>{node.author}</span>
+          <a className={authorClass} href={`/user/${encodeURIComponent(node.author)}/`}>{node.author}</a>
           {node.isSubmitter ? <span className="tag-badge is-op" title="Submitter">[S]</span> : null}
           {node.distinguished === 'moderator' ? (
             <span className="tag-badge is-mod" title="Moderator">[M]</span>
@@ -194,17 +194,6 @@ export const CommentRow = memo(
               +{hiddenCount || '…'}
             </span>
           ) : null}
-          <button
-            type="button"
-            className="comment-more"
-            aria-label="Comment actions"
-            onClick={(event) => {
-              event.stopPropagation();
-              onActions(node);
-            }}
-          >
-            <Icon name="more" />
-          </button>
         </div>
         {!collapsed ? (
           <>
@@ -236,16 +225,10 @@ export const CommentRow = memo(
                   edit
                 </button>
               ) : null}
-              <button
-                type="button"
-                className="flat-action"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onActions(node);
-                }}
-              >
-                more
-              </button>
+              <button type="button" className="flat-action" onClick={(event) => { event.stopPropagation(); void navigator.clipboard?.writeText(node.body); }}>copy text</button>
+              <button type="button" className="flat-action" onClick={(event) => { event.stopPropagation(); void navigator.clipboard?.writeText(new URL(node.permalink, location.origin).href); }}>copy link</button>
+              <a className="flat-action" href={node.permalink}>view on Reddit</a>
+              <button type="button" className="flat-action" onClick={(event) => { event.stopPropagation(); onActions(node); }}>more actions…</button>
             </div>
           </>
         ) : null}
