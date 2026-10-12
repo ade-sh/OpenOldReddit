@@ -54,11 +54,11 @@ export const PostMeta = ({
     <div className="post-meta">
       {showSub ? (
         <>
-          <span className="author">r/{post.subreddit}</span>
+          <a className="author" href={`/r/${encodeURIComponent(post.subreddit)}/`}>r/{post.subreddit}</a>
           <span className="dot" />
         </>
       ) : null}
-      <span className={authorClass}>u/{post.author}</span>
+      <a className={authorClass} href={`/user/${encodeURIComponent(post.author)}/`}>u/{post.author}</a>
       <span className="dot" />
       <time
         dateTime={new Date(post.createdAt).toISOString()}
