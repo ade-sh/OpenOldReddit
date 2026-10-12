@@ -161,6 +161,17 @@ export const CommentRow = memo(
             <span className="tag-badge is-admin" title="Admin">[A]</span>
           ) : null}
           {node.authorFlair ? <FlairChip flair={node.authorFlair} /> : null}
+          {node.awards?.map((award) => (
+            <span
+              className="award-chip"
+              key={award.name}
+              title={`${award.name} × ${award.count}`}
+            >
+              {award.iconUrl ? <img src={award.iconUrl} alt="" loading="lazy" /> : <span aria-hidden>🏅</span>}
+              <span>{award.name}</span>
+              {award.count > 1 ? <span>×{award.count}</span> : null}
+            </span>
+          ))}
           <VoteLinks
             thingId={node.id}
             permalink={node.permalink}
