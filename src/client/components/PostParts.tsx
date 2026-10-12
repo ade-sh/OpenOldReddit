@@ -241,6 +241,8 @@ const thumbUrl = (post: PostSummary): string | undefined => {
 
 export const Thumb = ({ post }: { post: PostSummary }) => {
   const activate = useActivateMedia();
+  const { prefs } = usePrefs();
+  const [expandedInline, setExpandedInline] = useState(false);
   const { blurred } = useSensitive(post);
   const [failed, setFailed] = useState(false);
   const url = thumbUrl(post);
@@ -280,7 +282,8 @@ export const Thumb = ({ post }: { post: PostSummary }) => {
       aria-label={`Open ${media.kind}`}
       onClick={(event) => {
         event.stopPropagation();
-        activate(post, 0, event.currentTarget);
+        if (prefs.mediaOpenMode === 'inline' && hasViewerMedia(post)) setExpandedInline((value) => !value);
+        else activate(post, 0, event.currentTarget);
       }}
     >
       {url && !failed ? (
@@ -296,6 +299,19 @@ export const Thumb = ({ post }: { post: PostSummary }) => {
       )}
       {badge}
     </button>
+    {expandedInline ? (
+      <div className="thumb-inline-preview" onClick={(event) => event.stopPropagation()}>
+        {media.kind === 'image' ? (
+          <img src={media.image.url} alt={post.title} loading="lazy" decoding="async" />
+        ) : media.kind === 'gallery' ? (
+          <div className="gallery-inline-expanded">
+            {media.items.map((item) => <img key={item.url} src={item.url} alt="" loading="lazy" decoding="async" />)}
+          </div>
+        ) : media.kind === 'video' && media.video.mp4 ? (
+          <video src={media.video.mp4} poster={media.poster?.url} controls playsInline preload="metadata" />
+        ) : null}
+      </div>
+    ) : null}
   );
 };
 
