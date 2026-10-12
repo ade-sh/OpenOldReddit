@@ -279,6 +279,12 @@ export const SettingsSheet = ({ onClosed }: { onClosed: () => void }) => {
             ]}
           />
           <Toggle
+            label="Show comment navigation"
+            hint="Show the floating previous/next comment controls"
+            value={prefs.showCommentNav}
+            onChange={set("showCommentNav")}
+          />
+          <Toggle
             label="Show awards"
             hint="Show award icons and counts on posts and comments"
             value={prefs.showAwards}
