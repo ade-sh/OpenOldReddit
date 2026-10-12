@@ -207,6 +207,22 @@ export const SettingsSheet = ({ onClosed }: { onClosed: () => void }) => {
           </div>
 
           <div className="sheet-section">Comments</div>
+          <div className="setting">
+            <span className="label">
+              Comment text width
+              <small>Controls line length on wide screens</small>
+            </span>
+          </div>
+          <Segmented
+            label="Comment text width"
+            value={prefs.commentWidth}
+            onChange={set("commentWidth")}
+            options={[
+              { value: "wide", label: "Wide" },
+              { value: "comfortable", label: "Comfortable" },
+              { value: "narrow", label: "Narrow" },
+            ]}
+          />
           <Segmented
             label="Depth colours"
             value={prefs.commentColors}
