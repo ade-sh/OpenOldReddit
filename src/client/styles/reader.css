@@ -3770,3 +3770,18 @@ button.appbar-title {
   margin-inline: 0;
   justify-self: start;
 }
+
+
+.thumb-inline-preview {
+  width: min(100%, 760px);
+  margin: 8px 0 8px 68px;
+}
+.thumb-inline-preview > img,
+.thumb-inline-preview > video {
+  display: block;
+  width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #000;
+}
