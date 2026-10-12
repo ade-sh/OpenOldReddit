@@ -177,9 +177,11 @@ export const viewerSpecFor = (
 /** Activate a post's primary media: viewer for images/video, browser for links. */
 export const useActivateMedia = () => {
   const nav = useNav();
+  const { prefs } = usePrefs();
   return (post: PostSummary, index: number, origin: Element | null) => {
     if (hasViewerMedia(post)) {
-      nav.openMedia(viewerSpecFor(post, index, origin));
+      if (prefs.mediaOpenMode === 'viewer') nav.openMedia(viewerSpecFor(post, index, origin));
+      else nav.openPost(post);
     } else if (post.media.kind === 'link' || post.media.kind === 'embed') {
       nav.openLink(post.media.url);
     } else {
@@ -416,8 +418,11 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
   const detail = variant === 'detail';
   const minRatio = detail ? 0.3 : 0.5;
   const maxRatio = detail ? 1.9 : 1.25;
-  const open = (index: number, el: Element | null) =>
-    nav.openMedia(viewerSpecFor(post, index, el));
+  const [expanded, setExpanded] = useState(false);
+  const open = (index: number, el: Element | null) => {
+    if (prefs.mediaOpenMode === 'viewer') nav.openMedia(viewerSpecFor(post, index, el));
+    else setExpanded(true);
+  }
 
   switch (media.kind) {
     case 'image':
@@ -426,7 +431,7 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
           image={media.image}
           blurred={blurred}
           label={label}
-          contain={detail}
+          contain={detail || expanded}
           minRatio={minRatio}
           maxRatio={maxRatio}
           onReveal={reveal}
@@ -440,6 +445,15 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
     case 'gallery': {
       const shown = media.items.slice(0, 3);
       const extra = media.items.length - shown.length;
+      if (expanded && prefs.mediaOpenMode === 'inline' && media.items.length > 1) {
+        return (
+          <div className="gallery-inline-expanded">
+            {media.items.map((item) => (
+              <img key={item.url} src={item.url} alt="" loading="lazy" decoding="async" />
+            ))}
+          </div>
+        );
+      }
       if (detail || media.items.length === 1) {
         const first = media.items[0];
         if (!first) return null;
@@ -448,7 +462,7 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
             image={first}
             blurred={blurred}
             label={label}
-            contain={detail}
+            contain={detail || expanded}
             minRatio={minRatio}
             maxRatio={maxRatio}
             onReveal={reveal}
@@ -494,6 +508,16 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
     }
 
     case 'video': {
+      if (expanded && prefs.mediaOpenMode === 'inline') {
+        const src = media.video.mp4;
+        return src ? (
+          <div className="media-inline-expanded" onClick={(event) => event.stopPropagation()}>
+            <video src={src} poster={media.poster?.url} controls autoPlay playsInline preload="metadata" />
+          </div>
+        ) : (
+          <button type="button" className="btn" onClick={() => openUrl(post.url)}>Open video source</button>
+        );
+      }
       const ratio = clampRatio(
         media.video.width,
         media.video.height,
@@ -710,3 +734,30 @@ export const LinkCard = ({
     </button>
   );
 };
+
+
+/* Expanded inline media stays in the post flow instead of covering the reader. */
+.gallery-inline-expanded {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
+  padding: 8px 0;
+}
+.gallery-inline-expanded img {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.media-inline-expanded {
+  width: 100%;
+  padding: 6px 0;
+}
+.media-inline-expanded video {
+  display: block;
+  width: 100%;
+  max-height: 75vh;
+  background: #000;
+  border-radius: 8px;
+}
