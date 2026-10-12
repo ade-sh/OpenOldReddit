@@ -1,5 +1,6 @@
 import type {
   Account,
+  AwardInfo,
   Community,
   CommentNode,
   Friend,
@@ -50,6 +51,17 @@ const image = (v: Raw | undefined) => {
       }
     : undefined;
 };
+function normalizeAwards(raw: unknown): AwardInfo[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const awards = raw.flatMap((item: Raw): AwardInfo[] => {
+    const name = String(item?.name ?? item?.short_name ?? "").trim();
+    const iconUrl = safeUrl(item?.icon_url ?? item?.resized_icons?.[0]?.url);
+    const count = Math.max(0, num(item?.count) || 0);
+    if (!name || count <= 0) return [];
+    return [{ name, count, ...(iconUrl ? { iconUrl } : {}) }];
+  });
+  return awards.length ? awards : undefined;
+}
 export function normalizePost(p: Raw): PostDetail {
   const preview = image(p.preview?.images?.[0]?.source);
   const thumbUrl =
@@ -146,6 +158,7 @@ export function normalizePost(p: Raw): PostDetail {
       : {}),
     ...(thumb ? { thumb } : {}),
     ...viewerVote(p.likes),
+    ...(normalizeAwards(p.all_awardings) ? { awards: normalizeAwards(p.all_awardings) } : {}),
     ...(typeof p.saved === "boolean" ? { saved: p.saved } : {}),
     ...modInfo(p),
     media,
@@ -321,6 +334,7 @@ export function normalizeComments(children: Raw[] = []): {
           replies: nested.comments,
           moreReplies: nested.more,
           ...viewerVote(c.likes),
+          ...(normalizeAwards(c.all_awardings) ? { awards: normalizeAwards(c.all_awardings) } : {}),
           ...(["moderator", "admin"].includes(c.distinguished)
             ? { distinguished: c.distinguished }
             : {}),

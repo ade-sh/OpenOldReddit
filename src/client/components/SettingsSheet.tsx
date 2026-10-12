@@ -269,6 +269,21 @@ export const SettingsSheet = ({ onClosed }: { onClosed: () => void }) => {
           </label>
 
           <div className="sheet-section">Media</div>
+          <Segmented
+            label="Media opening behavior"
+            value={prefs.mediaOpenMode}
+            onChange={set("mediaOpenMode")}
+            options={[
+              { value: "inline", label: "In page" },
+              { value: "viewer", label: "Full screen" },
+            ]}
+          />
+          <Toggle
+            label="Show awards"
+            hint="Show award icons and counts on posts and comments"
+            value={prefs.showAwards}
+            onChange={set("showAwards")}
+          />
           <Toggle
             label="Blur NSFW previews"
             value={prefs.blurNsfw}

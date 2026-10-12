@@ -84,7 +84,8 @@ export const PostFlags = ({ post }: { post: PostSummary }) => {
     post.spoiler ||
     post.locked ||
     post.flair ||
-    post.crosspost;
+    post.crosspost ||
+    Boolean(post.awards?.length);
   if (!hasAny) return null;
   return (
     <div className="post-flags">
@@ -102,6 +103,17 @@ export const PostFlags = ({ post }: { post: PostSummary }) => {
       ) : null}
       {post.crosspost ? <span className="tag oc">Crosspost</span> : null}
       {post.flair ? <FlairChip flair={post.flair} /> : null}
+      {post.awards?.map((award) => (
+        <span
+          className="award-chip"
+          key={award.name}
+          title={`${award.name} × ${award.count}`}
+        >
+          {award.iconUrl ? <img src={award.iconUrl} alt="" loading="lazy" /> : <span aria-hidden>🏅</span>}
+          <span>{award.name}</span>
+          {award.count > 1 ? <span>×{award.count}</span> : null}
+        </span>
+      ))}
     </div>
   );
 };
@@ -165,9 +177,11 @@ export const viewerSpecFor = (
 /** Activate a post's primary media: viewer for images/video, browser for links. */
 export const useActivateMedia = () => {
   const nav = useNav();
+  const { prefs } = usePrefs();
   return (post: PostSummary, index: number, origin: Element | null) => {
     if (hasViewerMedia(post)) {
-      nav.openMedia(viewerSpecFor(post, index, origin));
+      if (prefs.mediaOpenMode === 'viewer') nav.openMedia(viewerSpecFor(post, index, origin));
+      else nav.openPost(post);
     } else if (post.media.kind === 'link' || post.media.kind === 'embed') {
       nav.openLink(post.media.url);
     } else {
@@ -404,8 +418,11 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
   const detail = variant === 'detail';
   const minRatio = detail ? 0.3 : 0.5;
   const maxRatio = detail ? 1.9 : 1.25;
-  const open = (index: number, el: Element | null) =>
-    nav.openMedia(viewerSpecFor(post, index, el));
+  const [expanded, setExpanded] = useState(false);
+  const open = (index: number, el: Element | null) => {
+    if (prefs.mediaOpenMode === 'viewer') nav.openMedia(viewerSpecFor(post, index, el));
+    else setExpanded(true);
+  }
 
   switch (media.kind) {
     case 'image':
@@ -414,7 +431,7 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
           image={media.image}
           blurred={blurred}
           label={label}
-          contain={detail}
+          contain={detail || expanded}
           minRatio={minRatio}
           maxRatio={maxRatio}
           onReveal={reveal}
@@ -428,6 +445,15 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
     case 'gallery': {
       const shown = media.items.slice(0, 3);
       const extra = media.items.length - shown.length;
+      if (expanded && prefs.mediaOpenMode === 'inline' && media.items.length > 1) {
+        return (
+          <div className="gallery-inline-expanded">
+            {media.items.map((item) => (
+              <img key={item.url} src={item.url} alt="" loading="lazy" decoding="async" />
+            ))}
+          </div>
+        );
+      }
       if (detail || media.items.length === 1) {
         const first = media.items[0];
         if (!first) return null;
@@ -436,7 +462,7 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
             image={first}
             blurred={blurred}
             label={label}
-            contain={detail}
+            contain={detail || expanded}
             minRatio={minRatio}
             maxRatio={maxRatio}
             onReveal={reveal}
@@ -482,6 +508,16 @@ export const MediaFrame = ({ post, variant }: MediaFrameProps) => {
     }
 
     case 'video': {
+      if (expanded && prefs.mediaOpenMode === 'inline') {
+        const src = media.video.mp4;
+        return src ? (
+          <div className="media-inline-expanded" onClick={(event) => event.stopPropagation()}>
+            <video src={src} poster={media.poster?.url} controls autoPlay playsInline preload="metadata" />
+          </div>
+        ) : (
+          <button type="button" className="btn" onClick={() => openUrl(post.url)}>Open video source</button>
+        );
+      }
       const ratio = clampRatio(
         media.video.width,
         media.video.height,
@@ -698,3 +734,4 @@ export const LinkCard = ({
     </button>
   );
 };
+
