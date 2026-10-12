@@ -463,6 +463,18 @@ const Reader = ({ init }: { init: InitResponse }) => {
             }
           : { kind: "post", id: post.id, seed: post, focus };
       // Pages in the left-hand pane leave the right-hand one free for posts.
+      const existing = [detailRef.current, ...stackRef.current].find(
+        (entry) => entry && entry.phase !== "exiting" && entry.route.kind === "post" && entry.route.id === route.id,
+      );
+      if (existing) {
+        if (existing === detailRef.current) return;
+        setStack((entries) => {
+          const target = entries.find((entry) => entry.key === existing.key);
+          if (!target) return entries;
+          return entries.map((entry) => entry.key === target.key ? { ...entry, phase: "idle" } : entry);
+        });
+        return;
+      }
       const fullScreen = stackRef.current.some(
         (entry) => entry.phase !== "exiting" && !isListRoute(entry.route),
       );
@@ -575,6 +587,12 @@ const Reader = ({ init }: { init: InitResponse }) => {
         : "screen";
   const live = stack.filter((entry) => entry.phase !== "exiting");
   const feedCovered = live.length > 0;
+  useEffect(() => {
+    if (!feedCovered) return;
+    const active = document.activeElement;
+    const feed = document.querySelector(".screen.is-feed");
+    if (active instanceof HTMLElement && feed?.contains(active)) active.blur();
+  }, [feedCovered]);
   const bothCovered = live.some((entry) => paneOf(entry) === "screen");
   // The right-hand pane renders in the same keyed list as the full-screen
   // pages, in the order they were opened, so moving a post between them keeps
