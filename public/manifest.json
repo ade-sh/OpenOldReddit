@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "OpenOldReddit",
+  "version": "0.1.0",
+  "description": "Classic Old Reddit reader interface for Chrome with high-density feeds, classic styling, comment trees, and media viewer.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_title": "Toggle OpenOldReddit / original Reddit"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.reddit.com/*",
+        "https://old.reddit.com/*",
+        "https://reddit.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "reader.html",
+        "assets/*"
+      ],
+      "matches": [
+        "https://www.reddit.com/*",
+        "https://old.reddit.com/*",
+        "https://reddit.com/*"
+      ]
+    }
+  ]
+}

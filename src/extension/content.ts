@@ -1,0 +1,239 @@
+import { apiAction, apiVote } from "./writes";
+import { forwardVote, readNativeVote, isThingId } from "./votes";
+import { allowedJsonPath, normalizeAccount, parseRoute } from "./reddit";
+import { readSnapshot } from "./snapshot";
+
+let host: HTMLDivElement | null = null;
+let frame: HTMLIFrameElement | null = null;
+let exitButton: HTMLButtonElement | null = null;
+let active = false;
+let originalInert = false;
+let originalOverflow = "";
+let mountedUrl = "";
+let dismissed =
+  new URL(location.href).searchParams.get("openoldreddit") === "off" ||
+  new URL(location.href).searchParams.get("openrelay") === "off";
+let lastUrl = location.href;
+const extensionOrigin = new URL(chrome.runtime.getURL("reader.html")).origin;
+
+function show(visible: boolean) {
+  if (!host || active === visible) return;
+  active = visible;
+  if (visible) {
+    originalInert = document.body.inert;
+    originalOverflow = document.documentElement.style.overflow;
+    document.body.inert = true;
+    document.documentElement.style.overflow = "hidden";
+    host.style.display = "block";
+    frame?.focus();
+  } else {
+    document.body.inert = originalInert;
+    document.documentElement.style.overflow = originalOverflow;
+    host.style.display = "none";
+  }
+}
+function mount() {
+  if (!parseRoute(location.href)) return;
+  if (host && mountedUrl === location.href) {
+    show(true);
+    return;
+  }
+  show(false);
+  host?.remove();
+  mountedUrl = location.href;
+  host = document.createElement("div");
+  host.id = "openoldreddit-extension";
+  host.setAttribute("data-legacy-id", "openrelay-extension");
+  host.style.cssText =
+    "position:fixed!important;inset:0!important;z-index:2147483647!important;display:none";
+  const shadow = host.attachShadow({ mode: "closed" });
+  const style = document.createElement("style");
+  style.textContent =
+    "iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#eef0f3}button{position:absolute;bottom:12px;left:12px;border:1px solid #8494a8;border-radius:4px;background:#fff;color:#17283b;padding:7px 12px;font:12px system-ui;box-shadow:0 1px 4px #0002;cursor:pointer}button:focus-visible{outline:2px solid #336699}";
+  frame = document.createElement("iframe");
+  frame.title = "OpenOldReddit reader";
+  frame.allow = "clipboard-write; fullscreen";
+  frame.src =
+    chrome.runtime.getURL("reader.html") +
+    "#" +
+    new URLSearchParams({ source: location.href });
+  const exit = (exitButton = document.createElement("button"));
+  exit.textContent = "Original Reddit";
+  exit.title =
+    "Return to the original page. Click the extension icon to reopen OpenOldReddit.";
+  exit.addEventListener("click", () => {
+    dismissed = true;
+    show(false);
+  });
+  shadow.append(style, frame, exit);
+  document.documentElement.append(host);
+  show(true);
+}
+window.addEventListener("message", async (event) => {
+  if (event.source !== frame?.contentWindow || event.origin !== extensionOrigin)
+    return;
+  // Keep "Original Reddit" clear of the reader's bottom app bar.
+  if (
+    event.data?.type === "openoldreddit:inset" ||
+    event.data?.type === "openrelay:inset"
+  ) {
+    const bottom = Number(event.data.bottom);
+    if (exitButton && Number.isFinite(bottom) && bottom >= 0 && bottom <= 200)
+      exitButton.style.bottom = `${12 + bottom}px`;
+    return;
+  }
+  if (
+    event.data?.type !== "openoldreddit:request" &&
+    event.data?.type !== "openrelay:request"
+  )
+    return;
+  const { id, action, path, payload } = event.data;
+  const target = frame.contentWindow;
+  if (!Number.isSafeInteger(id)) return;
+  const resType =
+    event.data?.type === "openoldreddit:request"
+      ? "openoldreddit:response"
+      : "openrelay:response";
+  try {
+    let value: unknown;
+    if (action === "vote") {
+      if (!active) throw new Error("OpenOldReddit is not active");
+      const current = payload?.current;
+      if (current !== 1 && current !== 0 && current !== -1)
+        throw new Error("Invalid vote request");
+      const clicked = await forwardVote(
+        document,
+        payload?.thingId,
+        payload?.direction,
+      );
+      // Reader-fetched content has no buttons on the page; vote via the API.
+      value =
+        clicked.status === "missing"
+          ? await apiVote(
+              fetch,
+              location.origin,
+              payload.thingId,
+              current === payload.direction ? 0 : payload.direction,
+            )
+          : clicked;
+    } else if (action === "vote-status") {
+      if (
+        !Array.isArray(payload?.ids) ||
+        payload.ids.length > 100 ||
+        !payload.ids.every(isThingId)
+      )
+        throw new Error("Invalid vote status request");
+      value = Object.fromEntries(
+        payload.ids.map((thingId: string) => [
+          thingId,
+          readNativeVote(document, thingId),
+        ]),
+      );
+    } else if (action === "action") {
+      if (!active) throw new Error("OpenOldReddit is not active");
+      value = await apiAction(fetch, location.origin, payload?.op, payload?.args);
+    } else if (action === "me") {
+      // Only the name and picture reach the reader, never the session modhash.
+      const response = await fetch(new URL("/api/me.json", location.origin), {
+        credentials: "same-origin",
+        signal: AbortSignal.timeout(15000),
+        headers: { Accept: "application/json" },
+      });
+      value = response.ok
+        ? normalizeAccount(await response.json().catch(() => null))
+        : null;
+    } else if (action === "snapshot") {
+      let loaded = readSnapshot(document);
+      for (let i = 0; !loaded.posts.length && i < 10; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        loaded = readSnapshot(document);
+      }
+      value = loaded;
+    } else if (action === "json" && allowedJsonPath(path)) {
+      const response = await fetch(new URL(path, location.origin), {
+        credentials: "same-origin",
+        signal: AbortSignal.timeout(18000),
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok)
+        throw new Error(
+          response.status === 429
+            ? "Reddit is rate limiting requests. Please wait and try again."
+            : "Reddit could not load this content (" +
+                response.status +
+                "). Try Original Reddit.",
+        );
+      if (!response.headers.get("content-type")?.includes("json"))
+        throw new Error(
+          "Reddit returned a sign-in or access page. Use Original Reddit to continue.",
+        );
+      value = await response.json();
+    } else throw new Error("Unsupported request");
+    target?.postMessage(
+      { type: resType, id, value },
+      extensionOrigin,
+    );
+  } catch (error) {
+    target?.postMessage(
+      {
+        type: resType,
+        id,
+        error: error instanceof Error ? error.message : "Request failed",
+      },
+      extensionOrigin,
+    );
+  }
+});
+chrome.runtime.onMessage.addListener((message) => {
+  const msgType = (message as { type?: string })?.type;
+  if (msgType !== "openoldreddit:toggle" && msgType !== "openrelay:toggle")
+    return;
+  dismissed = active;
+  if (active) show(false);
+  else mount();
+});
+// Wait briefly for client-rendered listings, without touching login, settings or mod pages.
+function isGatePage() {
+  return (
+    !document.querySelector("shreddit-post, .thing.link") &&
+    (/prove your humanity|security check|you.ve been blocked|access denied/i.test(
+      document.title,
+    ) ||
+      Boolean(
+        document.querySelector(
+          'iframe[src*="recaptcha"], iframe[src*="hcaptcha"]',
+        ),
+      ))
+  );
+}
+function autoMount() {
+  if (isGatePage()) return;
+  const currentParams = new URL(location.href).searchParams;
+  if (
+    !dismissed &&
+    currentParams.get("openoldreddit") !== "off" &&
+    currentParams.get("openrelay") !== "off" &&
+    parseRoute(location.href)
+  )
+    mount();
+}
+setTimeout(autoMount, 500);
+setInterval(() => {
+  if (isGatePage()) {
+    show(false);
+    host?.remove();
+    host = null;
+    frame = null;
+    return;
+  }
+  if (!host) autoMount();
+  if (location.href !== lastUrl) {
+    lastUrl = location.href;
+    show(false);
+    host?.remove();
+    host = null;
+    frame = null;
+    // Native mode persists for this tab until the toolbar button is clicked.
+    autoMount();
+  }
+}, 750);
