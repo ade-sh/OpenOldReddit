@@ -1,7 +1,6 @@
 import { memo, type CSSProperties } from 'react';
 import type { CommentNode } from '../../shared/api';
 import { age, fullDate } from '../lib/format';
-import { useLongPress } from '../lib/gestures';
 import { Markdown } from '../lib/markdown';
 import { Icon } from './Icon';
 import { FlairChip } from './PostParts';
@@ -80,7 +79,6 @@ export const CommentRow = memo(
       ...(account?.isMod && swipe ? [{ icon: 'modShield', label: 'Mod', title: 'Moderate', onClick: () => swipe.moderate(node) } satisfies SwipeAction] : []),
       { icon: 'more', label: 'More', title: 'More actions', onClick: () => onActions(node) },
     ];
-    const press = useLongPress(() => onActions(node));
     // Collapsing hides only the replies; the comment author line stays visible.
     const collapsible = node.replies.length > 0 || node.moreReplies;
     const d = visualDepth(depth);
@@ -112,7 +110,6 @@ export const CommentRow = memo(
         aria-label={`Comment by ${node.author}${collapsed ? ', replies collapsed' : ''}`}
         tabIndex={0}
         onClick={(event) => {
-          if (press.consumeClick()) return;
           if ((event.target as Element).closest('a, button, .md-spoiler'))
             return;
           if (window.getSelection()?.toString()) return;
@@ -126,7 +123,6 @@ export const CommentRow = memo(
           )
             onToggle(node.id);
         }}
-        {...press.handlers}
       >
         {guides ? (
           <span
