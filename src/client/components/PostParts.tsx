@@ -84,7 +84,8 @@ export const PostFlags = ({ post }: { post: PostSummary }) => {
     post.spoiler ||
     post.locked ||
     post.flair ||
-    post.crosspost;
+    post.crosspost ||
+    Boolean(post.awards?.length);
   if (!hasAny) return null;
   return (
     <div className="post-flags">
@@ -102,6 +103,17 @@ export const PostFlags = ({ post }: { post: PostSummary }) => {
       ) : null}
       {post.crosspost ? <span className="tag oc">Crosspost</span> : null}
       {post.flair ? <FlairChip flair={post.flair} /> : null}
+      {post.awards?.map((award) => (
+        <span
+          className="award-chip"
+          key={award.name}
+          title={`${award.name} × ${award.count}`}
+        >
+          {award.iconUrl ? <img src={award.iconUrl} alt="" loading="lazy" /> : <span aria-hidden>🏅</span>}
+          <span>{award.name}</span>
+          {award.count > 1 ? <span>×{award.count}</span> : null}
+        </span>
+      ))}
     </div>
   );
 };
