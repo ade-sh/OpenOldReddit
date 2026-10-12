@@ -633,15 +633,17 @@ export const PostScreen = ({ postId, seed, focus }: PostScreenProps) => {
   const markdownActions = useMemo(
     () => ({
       onLink: nav.openLink,
-      onImage: (url: string) =>
-        nav.openMedia({
-          items: [{ kind: "image", url }],
-          index: 0,
-          sourceUrl: url,
-        }),
+      onImage: (url: string) => {
+        if (prefs.mediaOpenMode === "viewer")
+          nav.openMedia({
+            items: [{ kind: "image", url }],
+            index: 0,
+            sourceUrl: url,
+          });
+      },
       highlight,
     }),
-    [nav, highlight],
+    [nav, highlight, prefs.mediaOpenMode],
   );
 
   const body = post && "body" in post ? post.body : undefined;
