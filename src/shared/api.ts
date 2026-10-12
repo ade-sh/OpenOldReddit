@@ -271,6 +271,8 @@ export type Prefs = {
   mediaOpenMode: "inline" | "viewer";
   /** Show award icons and counts on posts and comments. */
   showAwards: boolean;
+  /** Show floating comment navigation controls. */
+  showCommentNav: boolean;
   commentSort: CommentSort;
   blurNsfw: boolean;
   blurSpoilers: boolean;
@@ -290,6 +292,7 @@ export const DEFAULT_PREFS: Prefs = {
   commentWidth: "comfortable",
   mediaOpenMode: "inline",
   showAwards: true,
+  showCommentNav: true,
   commentSort: "confidence",
   blurNsfw: true,
   blurSpoilers: true,
